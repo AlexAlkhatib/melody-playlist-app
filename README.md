@@ -68,13 +68,13 @@ L’objectif : créer une plateforme intuitive où chaque utilisateur peut crée
 
 ## 🧠 Compétences démontrées
 
-✔ Conception d’une architecture MVC professionnelle avec Symfony
-✔ Gestion complète d’un système d’authentification sécurisé
-✔ Manipulation avancée de Doctrine ORM (relations, entités, requêtes)
-✔ Construction d’une interface propre et responsive avec Twig + Bootstrap
-✔ Développement d’un système CRUD complet (create, read, update, delete)
-✔ Gestion d’une application collaborative et de ses flux utilisateurs
-✔ Organisation d’un projet web structuré, scalable et maintenable
+- ✔ Conception d’une architecture MVC professionnelle avec Symfony
+- ✔ Gestion complète d’un système d’authentification sécurisé
+- ✔ Manipulation avancée de Doctrine ORM (relations, entités, requêtes)
+- ✔ Construction d’une interface propre et responsive avec Twig + Bootstrap
+- ✔ Développement d’un système CRUD complet (create, read, update, delete)
+- ✔ Gestion d’une application collaborative et de ses flux utilisateurs
+- ✔ Organisation d’un projet web structuré, scalable et maintenable
 
 
 ## 📂 Structure du projet (exemple adaptée à Symfony)
