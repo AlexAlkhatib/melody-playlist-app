@@ -22,10 +22,8 @@ Les administrateurs disposent d'un back-office dédié pour gérer le catalogue,
 9. [Tests](#-tests)
 10. [Déploiement Docker (production)](#-déploiement-docker-production)
 11. [Déploiement hors Docker](#-déploiement-hors-docker)
-12. [Refonte 2.0 — ce qui a changé](#-refonte-20--ce-qui-a-changé)
-13. [Raccourcis Makefile](#-raccourcis-makefile)
-14. [Roadmap](#-roadmap)
-15. [Licence](#-licence)
+12. [Raccourcis Makefile](#-raccourcis-makefile)
+13. [Licence](#-licence)
 
 ---
 
@@ -385,7 +383,7 @@ php bin/console doctrine:migrations:migrate --no-interaction
 
 ---
 
-## 🎧 Interface et lecteur audio (2.1)
+## 🎧 Interface et lecteur audio
 
 Le front a été entièrement reconstruit : **aucun framework CSS**, un design system maison
 (`public/assets/css/app.css`) et un lecteur audio persistant en JavaScript vanilla
@@ -430,41 +428,6 @@ APP_ENV=preview php bin/console doctrine:schema:create
 APP_ENV=preview php bin/console doctrine:fixtures:load
 ```
 
-## 🔄 Refonte 2.1 — ce qui a changé
-
-### Bugs bloquants corrigés
-
-| # | Problème | Correction |
-|---|---|---|
-| 1 | `encore_entry_link_tags()` appelé sans WebpackEncore → **toutes les pages plantaient** | Assets Bootstrap 5 auto-hébergés, Encore retiré |
-| 2 | Extension Twig `AppBundle\Twig\Extension\Mobile` non autoloadable (namespace/PSR‑4) → conteneur KO | Supprimée : responsive géré en CSS |
-| 3 | `Morceaux::setImageFile()` écrivait `$this->updatedAt` **inexistant** | Supprimé |
-| 4 | `User::getPassword(): string` pouvait retourner `null` → `TypeError` | Signature `?string` (conforme à l'interface) |
-| 5 | Suppression d'un morceau en **GET sans CSRF** | `POST` + jeton CSRF + contrôle du propriétaire |
-| 6 | `MorceauxController::new()` sans `isValid()` | Validation complète |
-| 7 | Templates appelant des routes inexistantes (`app_morceaux_index`, `app_morceaux_edit`) | Routes unifiées `morceaux.*`, templates réécrits |
-| 8 | `templates/contact/index.html.twig` **vide** | Page de contact complète |
-| 9 | Fixtures : `setArtiste('Artiste #', $i)` (2 arguments) et **aucun `flush()`** | Fixtures réécrites (6 genres, 12 morceaux, 5 playlists) |
-| 10 | Email de contact avec `From:` = adresse du visiteur (SPF/DKIM impossibles) | `MAILER_FROM` + `Reply-To` visiteur |
-| 11 | `access_control` entièrement commenté → **tout était public** | Matrice d'accès explicite |
-| 12 | Deux authentificateurs, l'un levant `TODO: provide a valid redirect` | Un seul `LoginAuthenticator` + redirection |
-| 13 | `/user` permettait de modifier rôles et mots de passe de n'importe qui (hash affiché) | `/profil` pour soi, back-office `ROLE_ADMIN` pour les comptes |
-| 14 | `docker-compose.yml` en **PostgreSQL** alors que les migrations sont MySQL | Pile MySQL 8 + nginx + PHP‑FPM |
-| 15 | Symfony **6.1 (EOL)** | Symfony **6.4 LTS** (support jusqu'en 2027) |
-| 16 | EasyAdmin installé mais **aucun dashboard** (dépendance morte) | Back-office complet à `/admin` |
-| 17 | Uploads servis depuis `/morceaux` → collision avec la route `/morceaux/{id}` | Uploads déplacés sous `/media/…` |
-| 18 | Presque aucune validation métier | Contraintes `Assert` sur toutes les entités + messages en français |
-
-### Améliorations structurelles
-- Séparation des responsabilités : `ProfileController` / `Admin\*CrudController` / `MorceauxController`.
-- `Playlist::syncNbMorceaux()` : compteur toujours juste.
-- `Morceaux::isEditableBy()` / `Playlist::isOwnedBy()` : règles d'accès centralisées dans le modèle.
-- Repositories enrichis (`searchQuery`, `findByOwnerQuery`, `count*`) au lieu de `findAll()` dans les contrôleurs.
-- Interface repensée : navbar avec avatar, cartes, états vides, pagination, lecteurs audio.
-- Formulaires Bootstrap 5 (`form_themes`), libellés français, aides contextuelles.
-- Pipeline de déploiement reproductible (Dockerfile multi-étapes logiques, entrypoint, Makefile).
-- 9 tests fonctionnels + lints YAML/Twig exécutables en CI.
-
 ---
 
 ## 🛠 Raccourcis Makefile
@@ -482,19 +445,6 @@ make docker-up   # pile Docker (http://localhost:8080)
 make docker-down
 make clean
 ```
-
----
-
-## 🗺 Roadmap
-
-- [ ] Playlists publiques / privées avec lien de partage
-- [ ] Lecteur audio persistant (lecture continue entre les pages)
-- [ ] API REST / JSON (`/api`) pour un futur client mobile
-- [ ] Recommandations par genre et historique d'écoute
-- [ ] Upload asynchrone avec barre de progression
-- [ ] Notifications (email et in-app) lors d'un partage
-- [ ] CI GitHub Actions (tests + build Docker)
-- [ ] Traductions EN / ES (fichiers `translations/` prêts)
 
 ---
 
