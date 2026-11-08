@@ -1,4 +1,4 @@
-# 🎵 Melody — application musicale collaborative
+# 🎵 Symfony Melody — application musicale collaborative
 
 **Melody** est une application web complète de gestion de **playlists musicales collaboratives**,
 construite avec **Symfony 6.4 LTS** et **PHP 8.2+**.
