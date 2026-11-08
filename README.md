@@ -7,9 +7,6 @@ Chaque utilisateur peut ajouter des morceaux au catalogue commun (titre, artiste
 fichier audio), composer ses propres playlists et écouter les morceaux directement dans le navigateur.
 Les administrateurs disposent d'un back-office dédié pour gérer le catalogue, les comptes et les messages.
 
-> **État du projet :** refonte 2.0 — code réorganisé, failles corrigées, dépendances mises à jour,
-> tests fonctionnels automatisés, image Docker de production et documentation complète.
-
 ---
 
 ## Table des matières
