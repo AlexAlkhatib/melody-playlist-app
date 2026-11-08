@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+{% import 'partials/_ui.html.twig' as ui %}
+
+{% block title %}Page introuvable — {{ app_name }}{% endblock %}
+
+{% block body %}
+    <div class="empty" style="margin-top:40px">
+        {{ ui.icon('search', 40) }}
+        <strong style="font-size:22px">Cette page n'existe pas</strong>
+        <p>Le morceau, la playlist ou la page demandée a peut-être été supprimé.</p>
+        <a class="btn btn--primary" href="{{ path('home.index') }}">Retour à l'accueil</a>
+    </div>
+{% endblock %}

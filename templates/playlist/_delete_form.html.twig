@@ -1,4 +1,7 @@
-<form method="post" action="{{ path('app_playlist_delete', {'id': playlist.id}) }}" onsubmit="return confirm('Are you sure you want to delete this item?');">
-    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ playlist.id) }}">
-    <button class="btn">Supprimer</button>
+{% import 'partials/_ui.html.twig' as ui %}
+
+<form method="post" action="{{ path('app_playlist_delete', {id: playlist.id}) }}" class="inline-form"
+      onsubmit="return confirm('Supprimer définitivement « {{ playlist.nomPlaylist|e('js') }} » ?');">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete-playlist-' ~ playlist.id) }}">
+    <button class="btn btn--danger btn--sm" type="submit">{{ ui.icon('trash', 15) }} Supprimer</button>
 </form>

@@ -1,42 +1,57 @@
 {% extends 'base.html.twig' %}
+{% import 'partials/_ui.html.twig' as ui %}
 
-{% block title %}Log in!{% endblock %}
+{% block title %}Connexion — {{ app_name }}{% endblock %}
 
 {% block body %}
-<form method="post">
-    {% if error %}
-        <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
-    {% endif %}
+    <div class="auth">
+        <section class="auth__art">
+            <span class="auth__orb" aria-hidden="true"></span>
+            <h2>Reprenez là où la musique s'était arrêtée.</h2>
+            <p>Vos playlists, votre catalogue et votre lecteur vous attendent.</p>
+        </section>
 
-    {% if app.user %}
-        <div class="mb-3">
-            You are logged in as {{ app.user.userIdentifier }}, <a href="{{ path('app_logout') }}">Logout</a>
-        </div>
-    {% endif %}
+        <section class="auth__card">
+            <h1 class="auth__title">Connexion</h1>
+            <p class="auth__sub">Accédez à votre bibliothèque Melody.</p>
 
-    <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
-    <label for="inputEmail">Email</label>
-    <input type="email" value="{{ last_username }}" name="email" id="inputEmail" class="form-control" autocomplete="email" required autofocus>
-    <label for="inputPassword">Password</label>
-    <input type="password" name="password" id="inputPassword" class="form-control" autocomplete="current-password" required>
+            {% if error %}
+                <div class="toast toast--danger" style="margin-bottom:18px">
+                    <span>{{ error.messageKey|trans(error.messageData, 'security') }}</span>
+                </div>
+            {% endif %}
 
-    <input type="hidden" name="_csrf_token"
-           value="{{ csrf_token('authenticate') }}"
-    >
+            <form method="post" action="{{ path('app_login') }}" novalidate class="form-grid">
+                <div class="field">
+                    <label class="form-label" for="inputEmail">Adresse email</label>
+                    <input type="email" value="{{ last_username }}" name="email" id="inputEmail"
+                           class="form-control" autocomplete="email" required autofocus
+                           placeholder="vous@exemple.com">
+                </div>
 
-    {#
-        Uncomment this section and add a remember_me option below your firewall to activate remember me functionality.
-        See https://symfony.com/doc/current/security/remember_me.html
+                <div class="field">
+                    <label class="form-label" for="inputPassword">Mot de passe</label>
+                    <input type="password" name="password" id="inputPassword" class="form-control"
+                           autocomplete="current-password" required placeholder="••••••••">
+                </div>
 
-        <div class="checkbox mb-3">
-            <label>
-                <input type="checkbox" name="_remember_me"> Remember me
-            </label>
-        </div>
-    #}
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="_remember_me" id="rememberMe">
+                    <label class="form-check-label" for="rememberMe">Se souvenir de moi</label>
+                </div>
 
-    <button class="btn btn-lg btn-primary" type="submit">
-        Sign in
-    </button>
-</form>
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                <button class="btn btn--primary btn--block" type="submit">Se connecter</button>
+            </form>
+
+            <div class="auth__demo">
+                Compte de démonstration : <code>admin@melody.test</code> · mot de passe <code>Password123!</code>
+            </div>
+
+            <p class="auth__footer">
+                Pas encore de compte ? <a href="{{ path('app_register') }}">Inscrivez-vous</a>
+            </p>
+        </section>
+    </div>
 {% endblock %}

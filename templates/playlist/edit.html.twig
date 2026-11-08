@@ -1,10 +1,17 @@
 {% extends 'base.html.twig' %}
+{% import 'partials/_ui.html.twig' as ui %}
 
-{% block title %}Modification d'une Playlist{% endblock %}
+{% block title %}Modifier {{ playlist.nomPlaylist }} — {{ app_name }}{% endblock %}
 
 {% block body %}
-    <h1>Modifier la Playlist</h1>
+    <div class="page-head">
+        <div>
+            <p class="page-head__sub">
+                <a href="{{ path('app_playlist_show', {id: playlist.id}) }}" class="muted">← {{ playlist.nomPlaylist }}</a>
+            </p>
+            <h1 class="page-head__title">Modifier la playlist</h1>
+        </div>
+    </div>
 
-    {{ include('playlist/_form.html.twig', {'button_label': 'Update'}) }}
-
+    {{ include('playlist/_form.html.twig', {cancel: path('app_playlist_show', {id: playlist.id})}) }}
 {% endblock %}

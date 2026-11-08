@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+{% import 'partials/_ui.html.twig' as ui %}
+
+{% block title %}Mon profil — {{ app_name }}{% endblock %}
+
+{% block body %}
+    <div class="page-head">
+        <div>
+            <h1 class="page-head__title">Mon profil</h1>
+            <p class="page-head__sub">Vos informations et vos préférences de compte.</p>
+        </div>
+        <div class="page-head__actions">
+            <a class="btn btn--soft" href="{{ path('app_profile_edit') }}">{{ ui.icon('edit', 16) }} Modifier</a>
+            <a class="btn btn--ghost" href="{{ path('app_profile_password') }}">Mot de passe</a>
+            <a class="btn btn--ghost" href="{{ path('app_logout') }}">{{ ui.icon('logout', 16) }} Déconnexion</a>
+        </div>
+    </div>
+
+    <div class="split">
+        <section class="panel">
+            <div class="player__track">
+                <span class="avatar avatar--lg">{{ app.user.initiales }}</span>
+                <div>
+                    <h2 class="panel__title">{{ app.user.nomComplet }}</h2>
+                    <p class="panel__sub">{{ is_granted('ROLE_ADMIN') ? 'Administrateur' : 'Mélomane' }}</p>
+                </div>
+            </div>
+
+            <dl class="info-list mt-3">
+                <dt>Nom complet</dt>
+                <dd>{{ app.user.nomComplet }}</dd>
+
+                <dt>Adresse email</dt>
+                <dd>{{ app.user.email }}</dd>
+
+                <dt>Rôle</dt>
+                <dd>{{ is_granted('ROLE_ADMIN') ? 'Administrateur' : 'Utilisateur' }}</dd>
+            </dl>
+        </section>
+
+        <aside class="panel">
+            <div class="panel__head">
+                <h2 class="panel__title">Accès rapide</h2>
+                <p class="panel__sub">Continuez votre écoute</p>
+            </div>
+            <div class="stack-sm">
+                <a class="btn btn--primary btn--block" href="{{ path('morceaux.index') }}">{{ ui.icon('compass', 16) }} Explorer le catalogue</a>
+                <a class="btn btn--soft btn--block" href="{{ path('app_playlist_index') }}">{{ ui.icon('library', 16) }} Mes playlists</a>
+                <a class="btn btn--ghost btn--block" href="{{ path('morceaux.new') }}">{{ ui.icon('plus', 16) }} Ajouter un morceau</a>
+                {% if is_granted('ROLE_ADMIN') %}
+                    <a class="btn btn--ghost btn--block" href="{{ path('admin') }}">{{ ui.icon('shield', 16) }} Administration</a>
+                {% endif %}
+            </div>
+        </aside>
+    </div>
+{% endblock %}

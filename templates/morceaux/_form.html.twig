@@ -1,4 +1,17 @@
+{% import 'partials/_ui.html.twig' as ui %}
+{% set cancelUrl = cancel is defined ? cancel : path('morceaux.index') %}
+
 {{ form_start(form) }}
-    {{ form_widget(form) }}
-    <button class="btn">{{ button_label|default('Save') }}</button>
+<div class="panel form-grid">
+    {% for child in form %}
+        {% if child.vars.name not in ['_token', 'submit'] %}
+            <div class="field">{{ form_row(child) }}</div>
+        {% endif %}
+    {% endfor %}
+
+    <div class="form-actions">
+        {{ form_row(form.submit) }}
+        <a class="btn btn--ghost" href="{{ cancelUrl }}">Annuler</a>
+    </div>
+</div>
 {{ form_end(form) }}

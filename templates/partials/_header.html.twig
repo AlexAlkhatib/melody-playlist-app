@@ -1,42 +1,68 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="#"><img src="/logo-no-background.png" width="142px" /></a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor02" aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarColor02">
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item active">
-          <a class="nav-link" href="{{ path('home.index')}}">Acceuil
-            <span class="visually-hidden">(current)</span>
-          </a>
-        </li>
-        <li class="nav-item active">
-          <a class="nav-link" href="{{ path('morceaux.index')}}">Morceaux
-            <span class="visually-hidden">(current)</span>
-          </a>
-        </li>
-        <li class="nav-item active">
-          <a class="nav-link" href="{{ path('app_playlist_index')}}">Playlists
-            <span class="visually-hidden">(current)</span>
-          </a>
-        </li>
-        <li class="nav-item active">
-          <a class="nav-link" href="{{ path('app_user_index')}}">Profil
-            <span class="visually-hidden">(current)</span>
-          </a>
-        </li>
-        <li class="nav-item active">
-          <a class="nav-link" href="{{ path('contact.index')}}">Contact
-            <span class="visually-hidden">(current)</span>
-          </a>
-        </li>
-        <li class="nav-item active">
-          <a class="nav-link" href="/logout">Déconnexion
-            <span class="visually-hidden">(current)</span>
-          </a>
-        </li>
-      </ul>
+{% set route = app.request.attributes.get('_route') %}
+<nav class="navbar navbar-expand-lg navbar-dark melody-navbar sticky-top">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="{{ path('home.index') }}">
+            <img src="{{ asset('logo-no-background.png') }}" alt="" height="36" width="36" class="melody-logo">
+            <span class="fw-semibold">{{ app_name }}</span>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                aria-controls="mainNav" aria-expanded="false" aria-label="Afficher la navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link{{ route == 'home.index' ? ' active' }}" href="{{ path('home.index') }}">Accueil</a>
+                </li>
+                {% if app.user %}
+                    <li class="nav-item">
+                        <a class="nav-link{{ route starts with 'morceaux.' ? ' active' }}" href="{{ path('morceaux.index') }}">Catalogue</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link{{ route starts with 'app_playlist_' ? ' active' }}" href="{{ path('app_playlist_index') }}">Mes playlists</a>
+                    </li>
+                {% endif %}
+                <li class="nav-item">
+                    <a class="nav-link{{ route == 'contact.index' ? ' active' }}" href="{{ path('contact.index') }}">Contact</a>
+                </li>
+                {% if is_granted('ROLE_ADMIN') %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('admin') }}">Administration</a>
+                    </li>
+                {% endif %}
+            </ul>
+
+            <ul class="navbar-nav align-items-lg-center gap-lg-2">
+                {% if app.user %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="melody-avatar">{{ app.user.initiales }}</span>
+                            <span class="d-none d-lg-inline">{{ app.user.nomComplet }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{{ path('app_profile') }}">Mon profil</a></li>
+                            <li><a class="dropdown-item" href="{{ path('app_profile_edit') }}">Mes informations</a></li>
+                            <li><a class="dropdown-item" href="{{ path('app_profile_password') }}">Mot de passe</a></li>
+                            {% if is_granted('ROLE_ADMIN') %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ path('admin') }}">Administration</a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{{ path('app_logout') }}">Déconnexion</a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_login') }}">Connexion</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary btn-sm px-3" href="{{ path('app_register') }}">Créer un compte</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
     </div>
-  </div>
 </nav>

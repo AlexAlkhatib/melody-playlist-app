@@ -1,15 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
+/**
+ * Compte utilisateur de la plateforme.
+ *
+ * L'identifiant de connexion est l'adresse email (voir security.yaml).
+ */
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-#[UniqueEntity(fields: ['email'], message: 'There is already an account with this email')]
+#[UniqueEntity(fields: ['email'], message: 'Un compte existe déjà avec cette adresse email.')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -18,22 +28,37 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
+    #[Assert\NotBlank(message: 'Veuillez saisir une adresse email.')]
+    #[Assert\Email(message: 'Cette adresse email n\'est pas valide.')]
+    #[Assert\Length(max: 180, maxMessage: 'L\'email ne peut pas dépasser {{ limit }} caractères.')]
     private ?string $email = null;
 
+    /** @var list<string> */
     #[ORM\Column]
-    private array $roles = [];
+    private array $roles = ['ROLE_USER'];
 
-    /**
-     * @var string The hashed password
-     */
+    /** Mot de passe haché — jamais le mot de passe en clair. */
     #[ORM\Column]
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Veuillez saisir votre nom.')]
+    #[Assert\Length(max: 255, maxMessage: 'Le nom ne peut pas dépasser {{ limit }} caractères.')]
     private ?string $nom = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Veuillez saisir votre prénom.')]
+    #[Assert\Length(max: 255, maxMessage: 'Le prénom ne peut pas dépasser {{ limit }} caractères.')]
     private ?string $prenom = null;
+
+    /** @var Collection<int, Playlist> */
+    #[ORM\OneToMany(mappedBy: 'userid', targetEntity: Playlist::class, orphanRemoval: false)]
+    private Collection $playlists;
+
+    public function __construct()
+    {
+        $this->playlists = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -47,15 +72,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setEmail(string $email): self
     {
-        $this->email = $email;
+        $this->email = mb_strtolower(trim($email));
 
         return $this;
     }
 
     /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
+     * Identifiant visuel de l'utilisateur (utilisé par la sécurité et l'UI).
      */
     public function getUserIdentifier(): string
     {
@@ -63,28 +86,32 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * @see UserInterface
+     * @return list<string>
      */
     public function getRoles(): array
     {
         $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
         $roles[] = 'ROLE_USER';
 
-        return array_unique($roles);
+        return array_values(array_unique($roles));
     }
 
+    /**
+     * @param list<string> $roles
+     */
     public function setRoles(array $roles): self
     {
-        $this->roles = $roles;
+        $this->roles = array_values(array_unique($roles));
 
         return $this;
     }
 
-    /**
-     * @see PasswordAuthenticatedUserInterface
-     */
-    public function getPassword(): string
+    public function isAdmin(): bool
+    {
+        return \in_array('ROLE_ADMIN', $this->getRoles(), true);
+    }
+
+    public function getPassword(): ?string
     {
         return $this->password;
     }
@@ -97,12 +124,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * @see UserInterface
+     * Efface les données sensibles temporaires (aucune ici).
      */
-    public function eraseCredentials()
+    public function eraseCredentials(): void
     {
-        // If you store any temporary, sensitive data on the user, clear it here
-        // $this->plainPassword = null;
     }
 
     public function getNom(): ?string
@@ -112,7 +137,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setNom(string $nom): self
     {
-        $this->nom = $nom;
+        $this->nom = trim($nom);
 
         return $this;
     }
@@ -124,13 +149,55 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setPrenom(string $prenom): self
     {
-        $this->prenom = $prenom;
+        $this->prenom = trim($prenom);
 
         return $this;
     }
 
-    public function __toString()
+    public function getNomComplet(): string
     {
-        return json_encode($this->roles);
+        return trim(sprintf('%s %s', (string) $this->prenom, (string) $this->nom));
+    }
+
+    /**
+     * Initiales utilisées par l'avatar de la barre de navigation.
+     */
+    public function getInitiales(): string
+    {
+        $initiales = mb_substr((string) $this->prenom, 0, 1).mb_substr((string) $this->nom, 0, 1);
+
+        return mb_strtoupper($initiales !== '' ? $initiales : mb_substr((string) $this->email, 0, 1));
+    }
+
+    /**
+     * @return Collection<int, Playlist>
+     */
+    public function getPlaylists(): Collection
+    {
+        return $this->playlists;
+    }
+
+    public function addPlaylist(Playlist $playlist): self
+    {
+        if (!$this->playlists->contains($playlist)) {
+            $this->playlists->add($playlist);
+            $playlist->setUserid($this);
+        }
+
+        return $this;
+    }
+
+    public function removePlaylist(Playlist $playlist): self
+    {
+        if ($this->playlists->removeElement($playlist) && $playlist->getUserid() === $this) {
+            $playlist->setUserid(null);
+        }
+
+        return $this;
+    }
+
+    public function __toString(): string
+    {
+        return $this->getNomComplet() !== '' ? $this->getNomComplet() : (string) $this->email;
     }
 }

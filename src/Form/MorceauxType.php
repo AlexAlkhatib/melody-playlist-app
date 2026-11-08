@@ -1,15 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Form;
 
+use App\Entity\Genre;
 use App\Entity\Morceaux;
+use App\Repository\GenreRepository;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\File;
 use Vich\UploaderBundle\Form\Type\VichFileType;
 use Vich\UploaderBundle\Form\Type\VichImageType;
 
@@ -19,76 +23,58 @@ class MorceauxType extends AbstractType
     {
         $builder
             ->add('nomMorceaux', TextType::class, [
+                'label' => 'Titre du morceau',
                 'attr' => [
-                    'class' => 'form-control',
-                    'minlength' => '2',
-                    'maxlength' => '50'
+                    'placeholder' => 'Ex. Bohemian Rhapsody',
+                    'minlength' => 2,
+                    'maxlength' => 50,
                 ],
-                'label' => 'Nom du morceau',
-                'label_attr' => [
-                    'class' => 'form-label mt-4'
-                ]
-            ])
-            ->add('dateSortie', DateType::class,
-            [
-                'label' => 'Date de sortie',
-                'label_attr' => [
-                    'class' => 'form-label mt-4'
-                ],
-                'required' => false
             ])
             ->add('artiste', TextType::class, [
+                'label' => 'Artiste / groupe',
                 'attr' => [
-                    'class' => 'form-control',
-                    'minlength' => '2',
-                    'maxlength' => '50'
+                    'placeholder' => 'Ex. Queen',
+                    'minlength' => 2,
+                    'maxlength' => 255,
                 ],
-                'label' => 'Nom de l\'artiste',
-                'label_attr' => [
-                    'class' => 'form-label mt-4'
-                ]
             ])
-            ->add('genreid')
-            ->add('imageFile', VichImageType::class, [
-                'label' => 'Image de l\'album',
+            ->add('dateSortie', DateType::class, [
+                'label' => 'Date de sortie',
+                'widget' => 'single_text',
                 'required' => false,
-                'label_attr' => [
-                    'class' => 'form-label mt-4'
-                ],
-                'constraints' => [
-                    new File([
-                        'maxSize' => '1024k',
-                        'mimeTypes' => [
-                            'image/jpeg',
-                            'image/jpg',
-                            'image/png',
-
-                        ],
-                        'mimeTypesMessage' => 'utiliser une image valide, au format jpg ou png',
-                    ])]
-                
+                'help' => 'Laissez vide si vous ne connaissez pas la date exacte.',
+            ])
+            ->add('genreid', EntityType::class, [
+                'class' => Genre::class,
+                'label' => 'Genre musical',
+                'choice_label' => 'nomGenre',
+                'placeholder' => 'Choisir un genre…',
+                'query_builder' => static fn (GenreRepository $repository) => $repository
+                    ->createQueryBuilder('g')
+                    ->orderBy('g.nomGenre', 'ASC'),
+            ])
+            ->add('imageFile', VichImageType::class, [
+                'label' => 'Pochette de l\'album',
+                'required' => false,
+                'allow_delete' => false,
+                'download_uri' => false,
+                'image_uri' => static fn (Morceaux $morceaux) => null !== $morceaux->getImageName()
+                    ? '/media/images/'.$morceaux->getImageName()
+                    : null,
+                'help' => 'JPG, PNG ou WebP — 2 Mo maximum.',
             ])
             ->add('musicFile', VichFileType::class, [
-                'label' => 'Fichier musique du morceau',
-                'label_attr' => [
-                    'class' => 'form-label mt-4'
-                ],
-                'constraints' => [
-                    new File([
-                        'maxSize' => '15M',
-                        'mimeTypes' => [
-                            'audio/midi','audio/mpeg',
-                            'audio/mpeg3','audio/webm',
-                            'audio/ogg','audio/wav',
-                        ]
-                    ])
-                ]
+                'label' => 'Fichier audio',
+                'required' => false,
+                'allow_delete' => false,
+                'download_uri' => static fn (Morceaux $morceaux) => null !== $morceaux->getMusicName()
+                    ? '/media/morceaux/'.$morceaux->getMusicName()
+                    : null,
+                'help' => 'MP3, OGG, WAV ou FLAC — 20 Mo maximum.',
             ])
             ->add('submit', SubmitType::class, [
-                'attr' => [
-                    'class' => 'btn btn-primary mt-4'
-                ],
-                'label' => 'Valider'
+                'label' => 'Enregistrer',
+                'attr' => ['class' => 'btn btn-primary'],
             ]);
     }
 

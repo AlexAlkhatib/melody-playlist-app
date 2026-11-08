@@ -1,18 +1,165 @@
-{% extends "base.html.twig" %}
+{% extends 'base.html.twig' %}
+{% import 'partials/_ui.html.twig' as ui %}
 
-{% block title %}
-SymfonyMelody - Acceuil
-{% endblock %}
+{% block title %}{{ app_name }} — votre musique, en boucle{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <div class="jumbotron">
-        <h1 class="display-4">Bienvenue sur SymfonyMelody</h1>
-        <p class="lead">SymfonyMelody est une application qui va te permettre de créer des playlists de musique, Tu auras la possibilité de partager tes playlists avec la communauté du site ou de les garder en privée.</p>
-        <hr class="my-4">
-        <p>Pour commencer, rendez-vous sur la page d'inscription ou connectez vous pour utiliser l'application.</p>
-        <a class="btn btn-primary btn-lg" href="/register" role="inscription">Inscription</a>
-        <a class="btn btn-primary btn-lg" href="/login" role="connexion">Connexion</a>
-      </div>
-</div>
+    <section class="hero">
+        <div>
+            <span class="hero__eyebrow">{{ ui.icon('spark', 13) }} Musique collaborative</span>
+            <h1>Votre musique.<br>En boucle, ensemble.</h1>
+            <p>
+                Melody réunit votre catalogue, vos playlists et un lecteur continu :
+                ajoutez vos morceaux, composez des ambiances et écoutez sans jamais quitter la page.
+            </p>
+
+            <div class="hero__cta">
+                {% if app.user %}
+                    <a class="btn btn--primary" href="{{ path('morceaux.index') }}">{{ ui.icon('compass', 17) }} Explorer le catalogue</a>
+                    <a class="btn btn--ghost" href="{{ path('app_playlist_new') }}">{{ ui.icon('plus', 17) }} Créer une playlist</a>
+                {% else %}
+                    <a class="btn btn--primary" href="{{ path('app_register') }}">Créer un compte</a>
+                    <a class="btn btn--ghost" href="{{ path('app_login') }}">Se connecter</a>
+                {% endif %}
+            </div>
+
+            <div class="hero__stats">
+                <div class="stat"><strong>{{ nbMorceaux }}</strong><span>Morceaux</span></div>
+                <div class="stat"><strong>{{ nbPlaylists }}</strong><span>Playlists</span></div>
+                <div class="stat"><strong>{{ nbGenres }}</strong><span>Genres</span></div>
+            </div>
+        </div>
+
+        <div class="hero__art" aria-hidden="true">
+            <div class="hero__stack">
+                <div class="cover cover--5"></div>
+                <div class="cover cover--1"></div>
+                <div class="cover cover--0">{{ ui.icon('note', 64) }}</div>
+                <span class="hero__note">♪ {{ nbMorceaux }} titres · lecteur continu</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="resume-card" hidden>
+        <div class="section__head">
+            <div>
+                <h2 class="section__title">Reprendre l'écoute</h2>
+                <p class="section__sub">Là où vous vous étiez arrêté</p>
+            </div>
+        </div>
+        <div class="panel row-between">
+            <div class="player__track">
+                <div class="cover cover--0 player__cover" data-resume-cover aria-hidden="true"></div>
+                <div>
+                    <div class="track-card__title" data-resume-title></div>
+                    <div class="track-card__meta" data-resume-artist></div>
+                </div>
+            </div>
+            <button class="btn btn--primary" type="button" data-resume>
+                {{ ui.icon('play', 16) }} Reprendre
+            </button>
+        </div>
+    </section>
+
+    <section class="section" hidden>
+        <div class="section__head">
+            <div>
+                <h2 class="section__title">Écoutés récemment</h2>
+                <p class="section__sub">Votre historique sur cet appareil</p>
+            </div>
+        </div>
+        <div class="grid-tracks" id="recent-tracks" data-queue></div>
+    </section>
+
+    <section class="section">
+        <div class="section__head">
+            <div>
+                <h2 class="section__title">Nouveautés</h2>
+                <p class="section__sub">Les derniers titres ajoutés au catalogue</p>
+            </div>
+            {% if app.user %}
+                <a class="section__link" href="{{ path('morceaux.index') }}">Tout explorer</a>
+            {% endif %}
+        </div>
+
+        {% if derniersMorceaux is empty %}
+            <div class="empty">
+                {{ ui.icon('note', 32) }}
+                <strong>Le catalogue est encore vide</strong>
+                <p>Ajoutez le premier morceau pour démarrer votre bibliothèque.</p>
+                {% if app.user %}
+                    <a class="btn btn--primary btn--sm" href="{{ path('morceaux.new') }}">Ajouter un morceau</a>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="grid-tracks" data-queue>
+                {% for morceau in derniersMorceaux %}
+                    {{ ui.trackCard(morceau) }}
+                {% endfor %}
+            </div>
+            <div class="mt-2">
+                <button class="btn btn--soft" type="button" data-play-all>
+                    {{ ui.icon('play', 16) }} Tout lire
+                </button>
+            </div>
+        {% endif %}
+    </section>
+
+    {% if app.user and mesPlaylists is not empty %}
+        <section class="section">
+            <div class="section__head">
+                <div>
+                    <h2 class="section__title">Vos playlists</h2>
+                    <p class="section__sub">Vos ambiances du moment</p>
+                </div>
+                <a class="section__link" href="{{ path('app_playlist_index') }}">Toutes mes playlists</a>
+            </div>
+
+            <div class="grid-playlists">
+                {% for playlist in mesPlaylists %}
+                    <a class="playlist-card" href="{{ path('app_playlist_show', {id: playlist.id}) }}">
+                        <div class="mosaic">
+                            {% set tracks = playlist.morceauxid|slice(0, 4) %}
+                            {% for i in 0..3 %}
+                                {% set track = tracks[i] is defined ? tracks[i] : null %}
+                                {{ ui.cover(track ? track.id : loop.index, track and track.imageName ? vich_uploader_asset(track, 'imageFile') : null) }}
+                            {% endfor %}
+                        </div>
+                        <div class="playlist-card__title">{{ playlist.nomPlaylist }}</div>
+                        <div class="playlist-card__meta">{{ playlist.morceauxid|length }} morceau(x)</div>
+                    </a>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+    <section class="section">
+        <div class="section__head">
+            <div>
+                <h2 class="section__title">Explorer par genre</h2>
+                <p class="section__sub">Six univers, un seul lecteur</p>
+            </div>
+        </div>
+        <div class="chips">
+            {% for genre in genres %}
+                {% if app.user %}
+                    <a class="chip" href="{{ path('morceaux.index', {q: genre.nomGenre}) }}">{{ genre.nomGenre }}</a>
+                {% else %}
+                    <a class="chip" href="{{ path('app_login') }}">{{ genre.nomGenre }}</a>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </section>
+
+    {% if not app.user %}
+        <section class="section">
+            <div class="panel panel--pad-lg row-between">
+                <div>
+                    <h2 class="panel__title">Créez votre bibliothèque en une minute</h2>
+                    <p class="panel__sub">Compte gratuit, playlists illimitées, lecteur sans interruption.</p>
+                </div>
+                <a class="btn btn--accent" href="{{ path('app_register') }}">Commencer maintenant</a>
+            </div>
+        </section>
+    {% endif %}
 {% endblock %}

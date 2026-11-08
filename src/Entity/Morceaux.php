@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\MorceauxRepository;
@@ -7,10 +9,15 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\HttpFoundation\File\File;
-use Vich\UploaderBundle\Mapping\Annotation as Vich;
+use Symfony\Component\Validator\Constraints as Assert;
+use Vich\UploaderBundle\Mapping\Attribute as Vich;
 
+/**
+ * Morceau (piste) du catalogue collaboratif.
+ *
+ * Les fichiers (image de pochette + audio) sont gérés par VichUploader.
+ */
 #[ORM\Entity(repositoryClass: MorceauxRepository::class)]
 #[Vich\Uploadable]
 class Morceaux
@@ -18,44 +25,66 @@ class Morceaux
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Assert\NotNull()]
     private ?int $id = null;
 
     #[ORM\Column(length: 50)]
-    #[Assert\NotBlank()]
+    #[Assert\NotBlank(message: 'Le titre du morceau est obligatoire.')]
+    #[Assert\Length(
+        min: 2,
+        max: 50,
+        minMessage: 'Le titre doit contenir au moins {{ limit }} caractères.',
+        maxMessage: 'Le titre ne peut pas dépasser {{ limit }} caractères.'
+    )]
     private ?string $nomMorceaux = null;
 
     #[Vich\UploadableField(mapping: 'album_image', fileNameProperty: 'imageName')]
+    #[Assert\File(
+        maxSize: '2M',
+        mimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+        mimeTypesMessage: 'Choisissez une image JPG, PNG ou WebP.',
+        maxSizeMessage: 'L\'image ne doit pas dépasser {{ limit }} {{ suffix }}.'
+    )]
     private ?File $imageFile = null;
 
-    #[ORM\Column(type: 'string', nullable: true)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $imageName = null;
 
     #[Vich\UploadableField(mapping: 'morceau_musique', fileNameProperty: 'musicName')]
-    /**
-     * ...
-     * @Assert\File(mimeTypes={"audio/*"})
-     */
+    #[Assert\File(
+        maxSize: '20M',
+        mimeTypes: [
+            'audio/mpeg', 'audio/mp3', 'audio/ogg', 'audio/wav', 'audio/x-wav',
+            'audio/webm', 'audio/mp4', 'audio/aac', 'audio/flac', 'audio/x-flac', 'audio/midi',
+        ],
+        mimeTypesMessage: 'Choisissez un fichier audio valide (MP3, OGG, WAV, FLAC…).',
+        maxSizeMessage: 'Le fichier audio ne doit pas dépasser {{ limit }} {{ suffix }}.'
+    )]
     private ?File $musicFile = null;
 
-    #[ORM\Column(type: 'string')]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $musicName = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
-    #[Assert\NotNull()]
+    #[Assert\LessThanOrEqual('today', message: 'La date de sortie ne peut pas être dans le futur.')]
     private ?\DateTimeInterface $dateSortie = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Assert\NotBlank()]
+    #[Assert\NotBlank(message: 'Le nom de l\'artiste est obligatoire.')]
+    #[Assert\Length(max: 255, maxMessage: 'Le nom de l\'artiste ne peut pas dépasser {{ limit }} caractères.')]
     private ?string $artiste = null;
 
-    #[ORM\ManyToOne(inversedBy: 'morceauxes')]
-    #[ORM\JoinColumn(nullable: false)]
-    #[Assert\NotBlank()]
+    #[ORM\ManyToOne(inversedBy: 'morceauxes', targetEntity: Genre::class)]
+    #[ORM\JoinColumn(name: 'genreid_id', referencedColumnName: 'id', nullable: false)]
+    #[Assert\NotNull(message: 'Choisissez un genre musical.')]
     private ?Genre $genreid = null;
 
+    /** Utilisateur ayant ajouté le morceau (null pour les données importées). */
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    private ?User $createdBy = null;
+
+    /** @var Collection<int, Playlist> */
     #[ORM\ManyToMany(targetEntity: Playlist::class, mappedBy: 'morceauxid')]
-    
     private Collection $playlists;
 
     public function __construct()
@@ -63,9 +92,12 @@ class Morceaux
         $this->playlists = new ArrayCollection();
     }
 
-    public function __toString()
+    public function __toString(): string
     {
-        return $this->artiste.' - '.$this->nomMorceaux;
+        $artiste = $this->artiste ?? 'Artiste inconnu';
+        $titre = $this->nomMorceaux ?? 'Sans titre';
+
+        return sprintf('%s — %s', $artiste, $titre);
     }
 
     public function getId(): ?int
@@ -80,29 +112,16 @@ class Morceaux
 
     public function setNomMorceaux(string $nomMorceaux): self
     {
-        $this->nomMorceaux = $nomMorceaux;
+        $this->nomMorceaux = trim($nomMorceaux);
 
         return $this;
     }
 
-     /**
-     * If manually uploading a file (i.e. not using Symfony Form) ensure an instance
-     * of 'UploadedFile' is injected into this setter to trigger the update. If this
-     * bundle's configuration parameter 'inject_on_load' is set to 'true' this setter
-     * must be able to accept an instance of 'File' as the bundle will inject one here
-     * during Doctrine hydration.
-     *
-     * @param File|\Symfony\Component\HttpFoundation\File\UploadedFile|null $imageFile
-     */
-    public function setImageFile(?File $imageFile = null): void
+    public function setImageFile(?File $imageFile = null): self
     {
         $this->imageFile = $imageFile;
 
-        if (null !== $imageFile) {
-            // It is required that at least one field changes if you are using doctrine
-            // otherwise the event listeners won't be called and the file is lost
-            $this->updatedAt = new \DateTimeImmutable();
-        }
+        return $this;
     }
 
     public function getImageFile(): ?File
@@ -110,9 +129,11 @@ class Morceaux
         return $this->imageFile;
     }
 
-    public function setImageName(?string $imageName): void
+    public function setImageName(?string $imageName): self
     {
         $this->imageName = $imageName;
+
+        return $this;
     }
 
     public function getImageName(): ?string
@@ -120,24 +141,11 @@ class Morceaux
         return $this->imageName;
     }
 
-     /**
-     * If manually uploading a file (i.e. not using Symfony Form) ensure an instance
-     * of 'UploadedFile' is injected into this setter to trigger the update. If this
-     * bundle's configuration parameter 'inject_on_load' is set to 'true' this setter
-     * must be able to accept an instance of 'File' as the bundle will inject one here
-     * during Doctrine hydration.
-     *
-     * @param File|\Symfony\Component\HttpFoundation\File\UploadedFile|null $imageFile
-     */
-    public function setMusicFile(?File $musicFile = null): void
+    public function setMusicFile(?File $musicFile = null): self
     {
         $this->musicFile = $musicFile;
 
-        if (null !== $musicFile) {
-            // It is required that at least one field changes if you are using doctrine
-            // otherwise the event listeners won't be called and the file is lost
-            $this->updatedAt = new \DateTimeImmutable();
-        }
+        return $this;
     }
 
     public function getMusicFile(): ?File
@@ -145,9 +153,11 @@ class Morceaux
         return $this->musicFile;
     }
 
-    public function setMusicName(?string $musicName): void
+    public function setMusicName(?string $musicName): self
     {
         $this->musicName = $musicName;
+
+        return $this;
     }
 
     public function getMusicName(): ?string
@@ -174,7 +184,7 @@ class Morceaux
 
     public function setArtiste(?string $artiste): self
     {
-        $this->artiste = $artiste;
+        $this->artiste = null === $artiste ? null : trim($artiste);
 
         return $this;
     }
@@ -187,6 +197,18 @@ class Morceaux
     public function setGenreid(?Genre $genreid): self
     {
         $this->genreid = $genreid;
+
+        return $this;
+    }
+
+    public function getCreatedBy(): ?User
+    {
+        return $this->createdBy;
+    }
+
+    public function setCreatedBy(?User $createdBy): self
+    {
+        $this->createdBy = $createdBy;
 
         return $this;
     }
@@ -218,4 +240,15 @@ class Morceaux
         return $this;
     }
 
+    /**
+     * L'utilisateur peut-il modifier ce morceau ? (propriétaire ou admin)
+     */
+    public function isEditableBy(?User $user): bool
+    {
+        if (null === $user) {
+            return false;
+        }
+
+        return $user->isAdmin() || $this->createdBy?->getId() === $user->getId();
+    }
 }

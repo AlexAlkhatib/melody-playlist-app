@@ -1,18 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 use App\Entity\Playlist;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<Playlist>
- *
- * @method Playlist|null find($id, $lockMode = null, $lockVersion = null)
- * @method Playlist|null findOneBy(array $criteria, array $orderBy = null)
- * @method Playlist[]    findAll()
- * @method Playlist[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class PlaylistRepository extends ServiceEntityRepository
 {
@@ -39,28 +38,32 @@ class PlaylistRepository extends ServiceEntityRepository
         }
     }
 
-//    /**
-//     * @return Playlist[] Returns an array of Playlist objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('p')
-//            ->andWhere('p.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('p.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /**
+     * Playlists d'un utilisateur, les plus récentes d'abord.
+     */
+    public function findByOwnerQuery(User $user): QueryBuilder
+    {
+        return $this->createQueryBuilder('p')
+            ->andWhere('p.userid = :owner')
+            ->setParameter('owner', $user)
+            ->orderBy('p.id', 'DESC');
+    }
 
-//    public function findOneBySomeField($value): ?Playlist
-//    {
-//        return $this->createQueryBuilder('p')
-//            ->andWhere('p.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    public function countAll(): int
+    {
+        return (int) $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function countByOwner(User $user): int
+    {
+        return (int) $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->andWhere('p.userid = :owner')
+            ->setParameter('owner', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

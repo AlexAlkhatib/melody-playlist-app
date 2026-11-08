@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+{% import 'partials/_ui.html.twig' as ui %}
+
+{% block title %}Modifier mon profil — {{ app_name }}{% endblock %}
+
+{% block body %}
+    <div class="page-head">
+        <div>
+            <p class="page-head__sub"><a class="muted" href="{{ path('app_profile') }}">← Mon profil</a></p>
+            <h1 class="page-head__title">Mes informations</h1>
+        </div>
+    </div>
+
+    <div class="split">
+        <div>
+            {{ form_start(form, {attr: {class: 'form-grid', novalidate: 'novalidate'}}) }}
+                <div class="panel form-grid">
+                    {% for child in form %}
+                        {% if child.vars.name not in ['_token', 'submit'] %}
+                            <div class="field">{{ form_row(child) }}</div>
+                        {% endif %}
+                    {% endfor %}
+                    <div class="form-actions">
+                        {{ form_row(form.submit) }}
+                        <a class="btn btn--ghost" href="{{ path('app_profile') }}">Annuler</a>
+                    </div>
+                </div>
+            {{ form_end(form) }}
+        </div>
+
+        <aside class="panel">
+            <div class="panel__head">
+                <h2 class="panel__title">Sécurité</h2>
+                <p class="panel__sub">Votre mot de passe reste confidentiel</p>
+            </div>
+            <p class="small muted">Le mot de passe est stocké sous forme de hachage (bcrypt/argon2) et n'est jamais affiché.</p>
+            <div class="mt-2">
+                <a class="btn btn--soft btn--block" href="{{ path('app_profile_password') }}">Changer mon mot de passe</a>
+            </div>
+        </aside>
+    </div>
+{% endblock %}

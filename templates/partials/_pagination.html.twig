@@ -1,0 +1,24 @@
+{# Pagination KnpPaginator au format du design system Melody. #}
+{% if pageCount is defined and pageCount > 1 %}
+    <nav class="pager" aria-label="Pagination">
+        {% if previous is defined %}
+            <a href="{{ path(route, query|merge({(pageParameterName): previous})) }}" aria-label="Page précédente">‹</a>
+        {% else %}
+            <span class="is-disabled" aria-hidden="true">‹</span>
+        {% endif %}
+
+        {% for page in pagesInRange %}
+            {% if page != current %}
+                <a href="{{ path(route, query|merge({(pageParameterName): page})) }}">{{ page }}</a>
+            {% else %}
+                <span class="is-current" aria-current="page">{{ page }}</span>
+            {% endif %}
+        {% endfor %}
+
+        {% if next is defined %}
+            <a href="{{ path(route, query|merge({(pageParameterName): next})) }}" aria-label="Page suivante">›</a>
+        {% else %}
+            <span class="is-disabled" aria-hidden="true">›</span>
+        {% endif %}
+    </nav>
+{% endif %}

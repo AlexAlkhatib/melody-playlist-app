@@ -1,13 +1,32 @@
 {% extends 'base.html.twig' %}
+{% import 'partials/_ui.html.twig' as ui %}
 
-{% block title %}Edit Morceaux{% endblock %}
+{% block title %}Modifier {{ morceaux.nomMorceaux }} — {{ app_name }}{% endblock %}
 
 {% block body %}
-    <h1>Edit Morceaux</h1>
+    <div class="page-head">
+        <div>
+            <p class="page-head__sub">
+                <a href="{{ path('morceaux.show', {id: morceaux.id}) }}" class="muted">← {{ morceaux.nomMorceaux }}</a>
+            </p>
+            <h1 class="page-head__title">Modifier le morceau</h1>
+        </div>
+    </div>
 
-    {{ include('morceaux/_form.html.twig', {'button_label': 'Update'}) }}
+    <div class="split">
+        <div>
+            {{ include('morceaux/_form.html.twig', {cancel: path('morceaux.show', {id: morceaux.id})}) }}
+        </div>
 
-    <a href="{{ path('app_morceaux_index') }}">back to list</a>
-
-    {{ include('morceaux/_delete_form.html.twig') }}
+        <aside class="panel">
+            <div class="panel__head">
+                <h2 class="panel__title">Aperçu</h2>
+                <p class="panel__sub">Rendu dans le catalogue</p>
+            </div>
+            {{ ui.trackCard(morceaux) }}
+            <div class="mt-2">
+                {{ include('morceaux/_delete_form.html.twig') }}
+            </div>
+        </aside>
+    </div>
 {% endblock %}

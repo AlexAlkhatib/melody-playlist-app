@@ -1,42 +1,45 @@
 {% extends 'base.html.twig' %}
+{% import 'partials/_ui.html.twig' as ui %}
 
-{% block title %}Playlists{% endblock %}
+{% block title %}Mes playlists — {{ app_name }}{% endblock %}
 
 {% block body %}
-    <div class="container mt-4">
-        <h1>Mes Playlists</h1>
-        <a href="{{ path('app_playlist_new') }}" class="btn btn-primary mt-4">Créer une playlist</a>
-        <table class="table table-hover">
-            <thead>
-              <tr>
-              {% if is_mobile() %}
-                <td align="center" colspan="2" scope="col"><b>Playlists</b></th>
-              {% else %}
-                <th scope="col" width="50%">Nom</th>
-                <th scope="col" width="50%">Actions</th>
-              {% endif %}
-              </tr>
-            </thead>
-            <tbody>
-            {% for playlist in playlists %}
-              <tr class="table-primary">
-                <td{% if is_mobile() %} align="center" colspan="2"{% endif %} valign="middle">{{ playlist.nomPlaylist }}</td>{% if is_mobile() %}
-              </tr>
-              <tr class="table-primary">{% endif %}
-                <td{% if is_mobile() %} align="center"{% endif %} valign="middle" width="50%">
-                    <a href="{{ path('app_playlist_show', {'id': playlist.id}) }}" class="btn btn-success">Afficher</a>{% if is_mobile() %}
-                </td>
-                <td align="center" valign="middle" width="50%">{% endif %}
-                    <a href="{{ path('app_playlist_edit', {'id': playlist.id}) }}" class="btn btn-info">Modifier</a>{% if is_mobile() %}
-                </td>
-              </tr>
-              <tr class="table-primary">
-                <td align="center" colspan="2" valign="middle">{% endif %}
-                    <a class="btn btn-warning">{{ include('playlist/_delete_form.html.twig') }}</a>
-                </td>
-              </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+    <div class="page-head">
+        <div>
+            <h1 class="page-head__title">Mes playlists</h1>
+            <p class="page-head__sub">{{ playlists.getTotalItemCount }} playlist(s) dans votre bibliothèque</p>
+        </div>
+        <div class="page-head__actions">
+            <a class="btn btn--primary" href="{{ path('app_playlist_new') }}">{{ ui.icon('plus', 17) }} Créer une playlist</a>
+        </div>
     </div>
+
+    <div class="grid-playlists">
+        {% for playlist in playlists %}
+            <article class="playlist-card">
+                <a href="{{ path('app_playlist_show', {id: playlist.id}) }}">
+                    <div class="mosaic">
+                        {% set tracks = playlist.morceauxid|slice(0, 4) %}
+                        {% for i in 0..3 %}
+                            {% set track = tracks[i] is defined ? tracks[i] : null %}
+                            {{ ui.cover(track ? track.id : loop.index + playlist.id, track and track.imageName ? vich_uploader_asset(track, 'imageFile') : null) }}
+                        {% endfor %}
+                    </div>
+                    <div class="playlist-card__title">{{ playlist.nomPlaylist }}</div>
+                    <div class="playlist-card__meta">{{ playlist.morceauxid|length }} morceau(x) · {{ playlist.userid ? playlist.userid.nomComplet : '—' }}</div>
+                </a>
+                <div class="form-actions mt-1">
+                    <a class="btn btn--soft btn--sm" href="{{ path('app_playlist_edit', {id: playlist.id}) }}">{{ ui.icon('edit', 14) }} Modifier</a>
+                    {{ include('playlist/_delete_form.html.twig') }}
+                </div>
+            </article>
+        {% endfor %}
+
+        <a class="playlist-card playlist-card--new" href="{{ path('app_playlist_new') }}">
+            {{ ui.icon('plus', 28) }}
+            <span>Nouvelle playlist</span>
+        </a>
+    </div>
+
+    {{ knp_pagination_render(playlists, 'partials/_pagination.html.twig') }}
 {% endblock %}

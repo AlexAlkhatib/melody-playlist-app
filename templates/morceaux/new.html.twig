@@ -1,52 +1,31 @@
 {% extends 'base.html.twig' %}
+{% import 'partials/_ui.html.twig' as ui %}
 
-{% block title %}Nouveau Morceaux{% endblock %}
+{% block title %}Ajouter un morceau — {{ app_name }}{% endblock %}
 
 {% block body %}
-    <div class="container">
-        <h1 class="mt-4">Création d'un morceau</h1>
-        {{ form_start(form)}}
-        
-            <div class="form-group">
-                {{ form_label(form.nomMorceaux)}}
-                {{ form_widget(form.nomMorceaux)}}
-                <div class="form-error">
-                    {{ form_errors(form.nomMorceaux)}}
-                </div>
+    <div class="page-head">
+        <div>
+            <h1 class="page-head__title">Ajouter un morceau</h1>
+            <p class="page-head__sub">Renseignez les informations, puis joignez la pochette et l'audio.</p>
+        </div>
+    </div>
+
+    <div class="split">
+        <div>
+            {{ include('morceaux/_form.html.twig') }}
+        </div>
+
+        <aside class="panel">
+            <div class="panel__head">
+                <h2 class="panel__title">Conseils</h2>
+                <p class="panel__sub">Quelques repères avant publication</p>
             </div>
-
-            <div class="form-group">
-                {{ form_label(form.dateSortie)}}
-                {{ form_widget(form.dateSortie)}}
-                <div class="form-error">
-                    {{ form_errors(form.dateSortie)}}
-                </div>
+            <div class="stack-sm small muted">
+                <p>• Formats audio acceptés : MP3, OGG, WAV, FLAC, AAC (20 Mo maximum).</p>
+                <p>• Pochette : JPG, PNG ou WebP, 2 Mo maximum — carrée de préférence.</p>
+                <p>• Le morceau rejoint le catalogue partagé et reste modifiable par son auteur.</p>
             </div>
-
-            <div class="form-group">
-                {{ form_label(form.artiste)}}
-                {{ form_widget(form.artiste)}}
-                <div class="form-error">
-                    {{ form_errors(form.artiste)}}
-                </div>
-            </div>
-
-            <div class="form-group">
-                {{ form_label(form.genreid)}}
-                {{ form_widget(form.genreid)}}
-                <div class="form-error">
-                    {{ form_errors(form.genreid)}}
-                </div>
-            </div>
-
-            {{form_row(form.imageFile)}}
-            
-            {{form_row(form.musicFile)}}
-
-            <div class="form-group">
-                {{ form_row(form.submit) }}
-            </div>
-
-        {{ form_end(form)}}
+        </aside>
     </div>
 {% endblock %}

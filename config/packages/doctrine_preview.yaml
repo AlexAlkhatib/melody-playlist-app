@@ -1,0 +1,9 @@
+# Environnement "preview" : démonstration locale sans serveur MySQL.
+# Utilise le driver SQLite natif (extension sqlite3) et une base jetable dans var/app.db.
+# Cet environnement n'affecte ni dev, ni test, ni prod.
+when@preview:
+    doctrine:
+        dbal:
+            url: null
+            driver: sqlite3
+            path: '%kernel.project_dir%/var/app.db'

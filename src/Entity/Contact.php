@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\ContactRepository;
@@ -7,8 +9,9 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
-
-
+/**
+ * Message envoyé depuis le formulaire de contact.
+ */
 #[ORM\Entity(repositoryClass: ContactRepository::class)]
 class Contact
 {
@@ -18,20 +21,33 @@ class Contact
     private ?int $id = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\NotBlank(message: 'Votre prénom est obligatoire.')]
+    #[Assert\Length(max: 255, maxMessage: 'Le prénom ne peut pas dépasser {{ limit }} caractères.')]
     private ?string $prenom = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Votre email est obligatoire.')]
+    #[Assert\Email(message: 'Cette adresse email n\'est pas valide.')]
     private ?string $email = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\NotBlank(message: 'Le sujet est obligatoire.')]
+    #[Assert\Length(max: 255, maxMessage: 'Le sujet ne peut pas dépasser {{ limit }} caractères.')]
     private ?string $subject = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank(message: 'Le message est obligatoire.')]
+    #[Assert\Length(
+        min: 10,
+        max: 3000,
+        minMessage: 'Le message doit contenir au moins {{ limit }} caractères.',
+        maxMessage: 'Le message ne peut pas dépasser {{ limit }} caractères.'
+    )]
     private ?string $message = null;
 
     #[ORM\Column]
-    #[Assert\NotNull()]
-    private ?\DateTimeImmutable $createdAt = null;
+    #[Assert\NotNull]
+    private \DateTimeImmutable $createdAt;
 
     public function __construct()
     {
@@ -50,7 +66,7 @@ class Contact
 
     public function setPrenom(?string $prenom): self
     {
-        $this->prenom = $prenom;
+        $this->prenom = null === $prenom ? null : trim($prenom);
 
         return $this;
     }
@@ -62,7 +78,7 @@ class Contact
 
     public function setEmail(string $email): self
     {
-        $this->email = $email;
+        $this->email = trim($email);
 
         return $this;
     }
@@ -74,7 +90,7 @@ class Contact
 
     public function setSubject(?string $subject): self
     {
-        $this->subject = $subject;
+        $this->subject = null === $subject ? null : trim($subject);
 
         return $this;
     }
@@ -86,12 +102,12 @@ class Contact
 
     public function setMessage(string $message): self
     {
-        $this->message = $message;
+        $this->message = trim($message);
 
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }

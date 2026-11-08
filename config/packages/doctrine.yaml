@@ -1,12 +1,12 @@
 doctrine:
     dbal:
         url: '%env(resolve:DATABASE_URL)%'
+        charset: utf8mb4
 
-        # IMPORTANT: You MUST configure your server version,
-        # either here or in the DATABASE_URL env var (see .env file)
-        #server_version: '13'
     orm:
         auto_generate_proxy_classes: true
+        enable_lazy_ghost_objects: true
+        report_fields_where_declared: true
         naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
         auto_mapping: true
         mappings:
@@ -19,8 +19,11 @@ doctrine:
 when@test:
     doctrine:
         dbal:
-            # "TEST_TOKEN" is typically set by ParaTest
-            dbname_suffix: '_test%env(default::TEST_TOKEN)%'
+            # Base SQLite jetable recréée à chaque exécution des tests
+            # (aucun serveur MySQL nécessaire en CI).
+            url: null
+            driver: sqlite3
+            path: '%kernel.project_dir%/var/test.db'
 
 when@prod:
     doctrine:

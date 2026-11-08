@@ -1,112 +1,58 @@
 {% extends 'base.html.twig' %}
+{% import 'partials/_ui.html.twig' as ui %}
 
-{% block title %}Morceaux{% endblock %}
+{% block title %}Explorer le catalogue — {{ app_name }}{% endblock %}
+
 {% block body %}
- <div class="container mt-4">
-    <h1>Mes Morceaux</h1>
-    <p>Il y a {{morceaux.getTotalItemCount}} morceaux au total</p>
-    <a href="{{ path('morceaux.new')}}" class="btn btn-primary mt-4">Ajouter un morceau</a>
-    
- <table class="table table-hover">
-{% if is_mobile() %}
-  <thead><tr><td align="center" scope="col"><b>Morceaux</b></td></tr></thead>
-{% else %}
-  <thead>
-    <tr>
-      <th scope="col">Image</th>
-      <th scope="col">Artiste(s)</th>
-      <th scope="col">Titre</th>
-      <th scope="col">Date de sortie</th>
-      <th scope="col">Fichier Son</th>
-      <th scope="col">Genre</th>
-      <th scope="col">Suppression</th>
-    </tr>
-  </thead>
-{% endif %}
-  <tbody>
-    {% for morceau in morceaux %}
-      {% if is_mobile() %}
-        {% if vich_uploader_asset(morceau, 'imageFile') is not null %}
-        <tr class="table-primary">
-          <td align="center" valign="middle"><img width="100px" src="{{vich_uploader_asset(morceau, 'imageFile')}}"/></td>
-        </tr>
-        {% endif %}
-    <tr class="table-primary">
-      <td align="center" valign="middle"><i>{{morceau.artiste}}</i></br>
-      {{morceau.nomMorceaux}}</td>
-    </tr>
-    <tr class="table-primary">
-      <td align="center" valign="middle">{{morceau.dateSortie|date('d/m/Y')}}</br>
-      <audio controls src="{{vich_uploader_asset(morceau, 'musicFile')}}"></audio></td>
-    </tr>
-    <tr class="table-primary">
-      <td align="center" valign="middle">{{morceau.genreid}}</td>
-    </tr>
-    <tr class="table-primary">
-      <td align="center" valign="middle">
-        <a href="{{ path('morceaux.delete', { id : morceau.id }) }}" class="btn btn-warning">Supprimer</a>
-      </td>
-    </tr>
-      {% else %}
-    <tr class="table-primary">
-      <td><img width="50px" src="{{vich_uploader_asset(morceau, 'imageFile')}}"/></td>
-      <td><i>{{morceau.artiste}}</i></td>
-      <td>{{morceau.nomMorceaux}}</td>
-      <td>{{morceau.dateSortie|date('d/m/Y')}}</td>
-      <td><audio controls src="{{vich_uploader_asset(morceau, 'musicFile')}}"></audio></td>
-      <td>{{morceau.genreid}}</td>
-      <td>
-        <a href="{{ path('morceaux.delete', { id : morceau.id }) }}" class="btn btn-warning">Supprimer</a>
-      </td>
-    </tr>
-      {% endif %}
-    {% endfor %}
-  </tbody>
-</table>
-{# display navigation #}
-<div class="navigation">
-    {{ knp_pagination_render(morceaux) }}
-</div>
- </div>
-{% endblock %}
+    <div class="page-head">
+        <div>
+            <h1 class="page-head__title">Explorer</h1>
+            <p class="page-head__sub">{{ morceaux.getTotalItemCount }} morceau(x) dans le catalogue partagé</p>
+        </div>
+        <div class="page-head__actions">
+            <a class="btn btn--primary" href="{{ path('morceaux.new') }}">
+                {{ ui.icon('plus', 17) }} Ajouter un morceau
+            </a>
+        </div>
+    </div>
 
+    <form method="get" action="{{ path('morceaux.index') }}" role="search" class="mt-0">
+        <div class="search" style="max-width:none">
+            <svg width="17" height="17" aria-hidden="true"><use href="#i-search"/></svg>
+            <label class="sr-only" for="catalog-search">Rechercher dans le catalogue</label>
+            <input type="search" id="catalog-search" name="q" value="{{ q }}"
+                   placeholder="Titre, artiste, genre…" autocomplete="off">
+        </div>
+    </form>
 
-
-
-
-
-
-{# 
-
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>NomMorceaux</th>
-                <th>DateSortie</th>
-                <th>Artiste</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for morceaux in morceauxes %}
-            <tr>
-                <td>{{ morceaux.id }}</td>
-                <td>{{ morceaux.nomMorceaux }}</td>
-                <td>{{ morceaux.dateSortie ? morceaux.dateSortie|date('Y-m-d') : '' }}</td>
-                <td>{{ morceaux.artiste }}</td>
-                <td>
-                    <a href="{{ path('app_morceaux_show', {'id': morceaux.id}) }}">show</a>
-                    <a href="{{ path('app_morceaux_edit', {'id': morceaux.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="5">no records found</td>
-            </tr>
+    <div class="chips mt-2">
+        <a class="chip{{ q is empty ? ' is-active' }}" href="{{ path('morceaux.index') }}">Tous</a>
+        {% for genre in genres %}
+            <a class="chip{{ q == genre.nomGenre ? ' is-active' }}"
+               href="{{ path('morceaux.index', {q: genre.nomGenre}) }}">{{ genre.nomGenre }}</a>
         {% endfor %}
-        </tbody>
-    </table>
+    </div>
 
-    <a href="{{ path('app_morceaux_new') }}">Create new</a>    
-#}
+    {% if morceaux is empty %}
+        <div class="empty mt-3">
+            {{ ui.icon('search', 30) }}
+            <strong>Aucun morceau ne correspond{% if q %} à « {{ q }} »{% endif %}</strong>
+            <p>Essayez un autre titre, un autre artiste ou un autre genre.</p>
+            {% if q %}<a class="btn btn--soft btn--sm" href="{{ path('morceaux.index') }}">Réinitialiser la recherche</a>{% endif %}
+        </div>
+    {% else %}
+        <div class="grid-tracks mt-3" data-queue>
+            {% for morceau in morceaux %}
+                {{ ui.trackCard(morceau) }}
+            {% endfor %}
+        </div>
+
+        <div class="mt-2">
+            <button class="btn btn--soft" type="button" data-play-all>
+                {{ ui.icon('play', 16) }} Lire cette sélection
+            </button>
+        </div>
+
+        {{ knp_pagination_render(morceaux, 'partials/_pagination.html.twig') }}
+    {% endif %}
+{% endblock %}

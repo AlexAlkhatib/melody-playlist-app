@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+{% import 'partials/_ui.html.twig' as ui %}
+
+{% block title %}Contact — {{ app_name }}{% endblock %}
+
+{% block body %}
+    <div class="page-head">
+        <div>
+            <h1 class="page-head__title">Contact</h1>
+            <p class="page-head__sub">Une question, une idée, un bug ? Écrivez-nous.</p>
+        </div>
+    </div>
+
+    <div class="split">
+        <section class="panel">
+            <div class="panel__head">
+                <h2 class="panel__title">Envoyer un message</h2>
+                <p class="panel__sub">Réponse sous 48 h ouvrées</p>
+            </div>
+
+            {{ form_start(form, {attr: {class: 'form-grid', novalidate: 'novalidate'}}) }}
+                {% for child in form %}
+                    {% if child.vars.name not in ['_token', 'submit'] %}
+                        <div class="field">{{ form_row(child) }}</div>
+                    {% endif %}
+                {% endfor %}
+                <div class="form-actions">
+                    {{ form_row(form.submit) }}
+                </div>
+            {{ form_end(form) }}
+        </section>
+
+        <aside class="panel">
+            <div class="panel__head">
+                <h2 class="panel__title">Melody</h2>
+                <p class="panel__sub">Application musicale collaborative</p>
+            </div>
+            <div class="stack-sm small">
+                <p class="muted">Vos messages sont enregistrés et consultables par l'équipe d'administration.</p>
+                <p class="muted">Chaque envoi déclenche une notification email avec votre adresse en réponse directe.</p>
+                <a class="btn btn--soft btn--block mt-1" href="{{ path('home.index') }}">Retour à l'accueil</a>
+            </div>
+        </aside>
+    </div>
+{% endblock %}

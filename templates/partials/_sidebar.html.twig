@@ -1,0 +1,69 @@
+{% set route = app.request.attributes.get('_route') %}
+<aside class="sidebar" id="sidebar">
+    <a class="sidebar__brand" href="{{ path('home.index') }}">
+        <span class="sidebar__mark">
+            <svg width="22" height="22" aria-hidden="true"><use href="#i-note"/></svg>
+        </span>
+        <span>
+            <span class="sidebar__name">{{ app_name }}</span>
+            <span class="sidebar__tag">Music workspace</span>
+        </span>
+    </a>
+
+    <nav class="sidebar__nav" aria-label="Navigation principale">
+        <a class="nav-item{{ route == 'home.index' ? ' is-active' }}" href="{{ path('home.index') }}">
+            <svg width="19" height="19" aria-hidden="true"><use href="#i-home"/></svg>
+            Accueil
+        </a>
+
+        {% if app.user %}
+            <a class="nav-item{{ route starts with 'morceaux.' ? ' is-active' }}" href="{{ path('morceaux.index') }}">
+                <svg width="19" height="19" aria-hidden="true"><use href="#i-compass"/></svg>
+                Explorer
+            </a>
+            <a class="nav-item{{ route starts with 'app_playlist_' ? ' is-active' }}" href="{{ path('app_playlist_index') }}">
+                <svg width="19" height="19" aria-hidden="true"><use href="#i-library"/></svg>
+                Mes playlists
+            </a>
+        {% endif %}
+
+        <a class="nav-item{{ route == 'contact.index' ? ' is-active' }}" href="{{ path('contact.index') }}">
+            <svg width="19" height="19" aria-hidden="true"><use href="#i-mail"/></svg>
+            Contact
+        </a>
+
+        {% if is_granted('ROLE_ADMIN') %}
+            <a class="nav-item" href="{{ path('admin') }}">
+                <svg width="19" height="19" aria-hidden="true"><use href="#i-shield"/></svg>
+                Administration
+            </a>
+        {% endif %}
+    </nav>
+
+    {% if app.user %}
+        <div>
+            <p class="sidebar__label">Créer</p>
+            <a class="nav-item nav-item--accent" href="{{ path('morceaux.new') }}">
+                <svg width="18" height="18" aria-hidden="true"><use href="#i-plus"/></svg>
+                Ajouter un morceau
+            </a>
+        </div>
+    {% endif %}
+
+    <div class="sidebar__spacer"></div>
+
+    {% if app.user %}
+        <a class="user-chip" href="{{ path('app_profile') }}">
+            <span class="avatar">{{ app.user.initiales }}</span>
+            <span>
+                <span class="user-chip__name">{{ app.user.nomComplet }}</span>
+                <span class="user-chip__role">{{ is_granted('ROLE_ADMIN') ? 'Administrateur' : 'Mélomane' }}</span>
+            </span>
+        </a>
+    {% else %}
+        <div class="stack-sm">
+            <a class="btn btn--primary btn--block" href="{{ path('app_register') }}">Créer un compte</a>
+            <a class="btn btn--ghost btn--block" href="{{ path('app_login') }}">Se connecter</a>
+        </div>
+    {% endif %}
+</aside>

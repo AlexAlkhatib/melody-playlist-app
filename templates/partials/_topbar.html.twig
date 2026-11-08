@@ -1,0 +1,38 @@
+<header class="topbar">
+    <button class="topbar__menu" type="button" data-menu-toggle aria-label="Ouvrir le menu">
+        <svg width="20" height="20" aria-hidden="true"><use href="#i-menu"/></svg>
+    </button>
+
+    {% if app.user %}
+        <form class="search" method="get" action="{{ path('morceaux.index') }}" role="search">
+            <svg width="17" height="17" aria-hidden="true"><use href="#i-search"/></svg>
+            <label class="sr-only" for="topbar-search">Rechercher</label>
+            <input type="search" id="topbar-search" name="q" value="{{ app.request.query.get('q') }}"
+                   placeholder="Rechercher un titre, un artiste, un genre…" autocomplete="off">
+        </form>
+    {% else %}
+        <form class="search" method="get" action="{{ path('app_login') }}" role="search">
+            <svg width="17" height="17" aria-hidden="true"><use href="#i-search"/></svg>
+            <label class="sr-only" for="topbar-search">Rechercher</label>
+            <input type="search" id="topbar-search" name="q" placeholder="Connectez-vous pour explorer le catalogue" disabled>
+        </form>
+    {% endif %}
+
+    <div class="topbar__actions">
+        {% if app.user %}
+            <a class="btn btn--soft btn--sm" href="{{ path('morceaux.new') }}">
+                <svg width="15" height="15" aria-hidden="true"><use href="#i-plus"/></svg>
+                Ajouter
+            </a>
+            <a class="btn btn--icon" href="{{ path('app_logout') }}" title="Déconnexion" aria-label="Déconnexion">
+                <svg width="17" height="17" aria-hidden="true"><use href="#i-logout"/></svg>
+            </a>
+            <a class="avatar" href="{{ path('app_profile') }}" title="{{ app.user.nomComplet }}">
+                {{ app.user.initiales }}
+            </a>
+        {% else %}
+            <a class="btn btn--ghost btn--sm" href="{{ path('app_login') }}">Connexion</a>
+            <a class="btn btn--primary btn--sm" href="{{ path('app_register') }}">Créer un compte</a>
+        {% endif %}
+    </div>
+</header>

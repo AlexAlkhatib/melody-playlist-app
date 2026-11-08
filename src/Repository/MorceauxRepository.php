@@ -1,18 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 use App\Entity\Morceaux;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<Morceaux>
- *
- * @method Morceaux|null find($id, $lockMode = null, $lockVersion = null)
- * @method Morceaux|null findOneBy(array $criteria, array $orderBy = null)
- * @method Morceaux[]    findAll()
- * @method Morceaux[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class MorceauxRepository extends ServiceEntityRepository
 {
@@ -39,28 +37,43 @@ class MorceauxRepository extends ServiceEntityRepository
         }
     }
 
-//    /**
-//     * @return Morceaux[] Returns an array of Morceaux objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('m')
-//            ->andWhere('m.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('m.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /**
+     * Catalogue des morceaux, éventuellement filtré par une recherche libre
+     * (titre, artiste ou genre).
+     */
+    public function searchQuery(?string $term = null): QueryBuilder
+    {
+        $qb = $this->createQueryBuilder('m')
+            ->leftJoin('m.genreid', 'g')
+            ->addSelect('g')
+            ->orderBy('m.id', 'DESC');
 
-//    public function findOneBySomeField($value): ?Morceaux
-//    {
-//        return $this->createQueryBuilder('m')
-//            ->andWhere('m.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        $term = trim((string) $term);
+        if ('' !== $term) {
+            $qb->andWhere('m.nomMorceaux LIKE :term OR m.artiste LIKE :term OR g.nomGenre LIKE :term')
+                ->setParameter('term', '%'.$term.'%');
+        }
+
+        return $qb;
+    }
+
+    public function countAll(): int
+    {
+        return (int) $this->createQueryBuilder('m')
+            ->select('COUNT(m.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * @return list<Morceaux>
+     */
+    public function findLatest(int $limit = 5): array
+    {
+        return $this->createQueryBuilder('m')
+            ->orderBy('m.id', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

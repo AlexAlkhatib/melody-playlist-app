@@ -1,10 +1,15 @@
 {% extends 'base.html.twig' %}
+{% import 'partials/_ui.html.twig' as ui %}
 
-{% block title %}Nouvelle Playlist{% endblock %}
+{% block title %}Nouvelle playlist — {{ app_name }}{% endblock %}
 
 {% block body %}
-    <h1>Créer une Playlist</h1>
+    <div class="page-head">
+        <div>
+            <h1 class="page-head__title">Nouvelle playlist</h1>
+            <p class="page-head__sub">Donnez-lui un nom, puis sélectionnez les morceaux qui la composent.</p>
+        </div>
+    </div>
 
     {{ include('playlist/_form.html.twig') }}
-
 {% endblock %}

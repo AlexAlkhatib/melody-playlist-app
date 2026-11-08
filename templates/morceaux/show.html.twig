@@ -1,34 +1,84 @@
 {% extends 'base.html.twig' %}
+{% import 'partials/_ui.html.twig' as ui %}
 
-{% block title %}Morceaux{% endblock %}
+{% block title %}{{ morceaux.nomMorceaux }} — {{ app_name }}{% endblock %}
 
 {% block body %}
-    <h1>Morceaux</h1>
+    <div data-queue>
+        <section class="detail">
+            <div class="detail__cover">
+                {{ ui.cover(morceaux.id, morceaux.imageName ? vich_uploader_asset(morceaux, 'imageFile') : null, 'cover--lg') }}
+            </div>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ morceaux.id }}</td>
-            </tr>
-            <tr>
-                <th>NomMorceaux</th>
-                <td>{{ morceaux.nomMorceaux }}</td>
-            </tr>
-            <tr>
-                <th>DateSortie</th>
-                <td>{{ morceaux.dateSortie ? morceaux.dateSortie|date('Y-m-d') : '' }}</td>
-            </tr>
-            <tr>
-                <th>Artiste</th>
-                <td>{{ morceaux.artiste }}</td>
-            </tr>
-        </tbody>
-    </table>
+            <div>
+                <div class="detail__eyebrow">Morceau · {{ morceaux.genreid ? morceaux.genreid.nomGenre : 'Sans genre' }}</div>
+                <h1>{{ morceaux.nomMorceaux }}</h1>
+                <p class="detail__artist">{{ morceaux.artiste }}</p>
 
-    <a href="{{ path('app_morceaux_index') }}">back to list</a>
+                <div class="detail__meta">
+                    {% if morceaux.genreid %}<span class="tag tag--brand">{{ morceaux.genreid.nomGenre }}</span>{% endif %}
+                    {% if morceaux.dateSortie %}<span class="tag">{{ morceaux.dateSortie|date('Y') }}</span>{% endif %}
+                    <span class="tag">{{ morceaux.musicName ? 'Audio disponible' : 'Sans audio' }}</span>
+                </div>
 
-    <a href="{{ path('app_morceaux_edit', {'id': morceaux.id}) }}">edit</a>
+                <div class="detail__actions">
+                    {% if morceaux.musicName %}
+                        <button class="btn btn--primary" type="button" data-play
+                                data-track-id="{{ morceaux.id }}"
+                                data-title="{{ morceaux.nomMorceaux }}"
+                                data-artist="{{ morceaux.artiste }}"
+                                data-src="{{ vich_uploader_asset(morceaux, 'musicFile') }}"
+                                data-cover="{{ morceaux.id % 8 }}"
+                                data-url="{{ path('morceaux.show', {id: morceaux.id}) }}">
+                            {{ ui.icon('play', 17) }} Écouter
+                        </button>
+                    {% else %}
+                        <span class="tag">Aucun fichier audio associé</span>
+                    {% endif %}
 
-    {{ include('morceaux/_delete_form.html.twig') }}
+                    <a class="btn btn--ghost" href="{{ path('morceaux.index') }}">Retour au catalogue</a>
+
+                    {% if morceaux.isEditableBy(app.user) %}
+                        <a class="btn btn--soft" href="{{ path('morceaux.edit', {id: morceaux.id}) }}">{{ ui.icon('edit', 16) }} Modifier</a>
+                        {{ include('morceaux/_delete_form.html.twig') }}
+                    {% endif %}
+                </div>
+
+                <div class="detail__stats">
+                    <div class="detail__stat">
+                        <span>Date de sortie</span>
+                        <strong>{{ morceaux.dateSortie ? morceaux.dateSortie|date('d/m/Y') : '—' }}</strong>
+                    </div>
+                    <div class="detail__stat">
+                        <span>Ajouté par</span>
+                        <strong>{{ morceaux.createdBy ? morceaux.createdBy.nomComplet : 'Catalogue' }}</strong>
+                    </div>
+                    <div class="detail__stat">
+                        <span>Genre</span>
+                        <strong>{{ morceaux.genreid ? morceaux.genreid.nomGenre : '—' }}</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    {% if morceaux.playlists is not empty %}
+        <section class="section">
+            <div class="section__head">
+                <div>
+                    <h2 class="section__title">Présent dans ces playlists</h2>
+                    <p class="section__sub">{{ morceaux.playlists|length }} playlist(s) de la communauté</p>
+                </div>
+            </div>
+            <div class="chips">
+                {% for playlist in morceaux.playlists %}
+                    {% if playlist.isOwnedBy(app.user) %}
+                        <a class="chip" href="{{ path('app_playlist_show', {id: playlist.id}) }}">{{ playlist.nomPlaylist }}</a>
+                    {% else %}
+                        <span class="chip">{{ playlist.nomPlaylist }}</span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
 {% endblock %}

@@ -1,76 +1,58 @@
 {% extends 'base.html.twig' %}
+{% import 'partials/_ui.html.twig' as ui %}
 
-{% block title %}Ma Playlist{% endblock %}
+{% block title %}{{ playlist.nomPlaylist }} — {{ app_name }}{% endblock %}
+
 {% block body %}
- <div class="container mt-4">
-    <h1>Mes Morceaux</h1>
-    
- <table class="table table-hover">
-  <thead>
-    <tr>
-      {% if is_mobile() %}
-      <td scope="col" align="center" colspan="2"><b>{{ playlist.nomPlaylist }}</b></td>
-      {% else %}
-      <th scope="col" colspan="4">{{ playlist.nomPlaylist }}</th>
-      {% endif %}
-    </tr>
-  </thead>
-  <tbody>
-    {% for morceau in playlist.morceauxid %}
-      {% if is_mobile() %}
-        {% if vich_uploader_asset(morceau, 'imageFile') is not null %}
-        <tr class="table-primary">
-          <td align="center" valign="middle" colspan="2"><img width="100px" src="{{vich_uploader_asset(morceau, 'imageFile')}}"/></td>
-        </tr>
+    <div data-queue>
+        <div class="playlist-hero">
+            <div class="mosaic">
+                {% set tracks = playlist.morceauxid|slice(0, 4) %}
+                {% for i in 0..3 %}
+                    {% set track = tracks[i] is defined ? tracks[i] : null %}
+                    {{ ui.cover(track ? track.id : loop.index + playlist.id, track and track.imageName ? vich_uploader_asset(track, 'imageFile') : null) }}
+                {% endfor %}
+            </div>
+
+            <div>
+                <div class="detail__eyebrow">Playlist</div>
+                <h1 class="playlist-hero__title">{{ playlist.nomPlaylist }}</h1>
+                <p class="playlist-hero__sub">
+                    {{ playlist.morceauxid|length }} morceau(x) ·
+                    créée par {{ playlist.userid ? playlist.userid.nomComplet : '—' }}
+                </p>
+
+                <div class="playlist-hero__actions">
+                    {% if playlist.morceauxid is not empty %}
+                        <button class="btn btn--primary" type="button" data-play-all>
+                            {{ ui.icon('play', 17) }} Tout lire
+                        </button>
+                    {% endif %}
+                    {% if playlist.isOwnedBy(app.user) %}
+                        <a class="btn btn--soft" href="{{ path('app_playlist_edit', {id: playlist.id}) }}">{{ ui.icon('edit', 16) }} Modifier</a>
+                        {{ include('playlist/_delete_form.html.twig') }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {% if playlist.morceauxid is empty %}
+            <div class="empty">
+                {{ ui.icon('library', 30) }}
+                <strong>Cette playlist est vide</strong>
+                <p>Ajoutez des morceaux du catalogue pour lui donner vie.</p>
+                <a class="btn btn--primary btn--sm" href="{{ path('app_playlist_edit', {id: playlist.id}) }}">Ajouter des morceaux</a>
+            </div>
+        {% else %}
+            <div class="track-list">
+                {% for morceau in playlist.morceauxid %}
+                    {{ ui.trackRow(morceau) }}
+                {% endfor %}
+            </div>
         {% endif %}
-        <tr class="table-primary">
-          <td align="center" valign="middle" width="50%">{{morceau.artiste}}</td>
-          <td align="center" valign="middle" width="50%">{{morceau.nomMorceaux}}</td>
-        </tr>
-        <tr class="table-primary">
-          <td colspan="3" align="center"><audio controls src="{{vich_uploader_asset(morceau, 'musicFile')}}"></audio></td>
-        </tr>
-      {% else %}
-        <tr class="table-primary">
-          <td align="center" valign="middle"><img width="50px" src="{{vich_uploader_asset(morceau, 'imageFile')}}"/></td>
-          <td align="center" valign="middle">{{morceau.artiste}}</td>
-          <td align="center" valign="middle">{{morceau.nomMorceaux}}</td>
-          <td align="center" valign="middle"><audio controls src="{{vich_uploader_asset(morceau, 'musicFile')}}"></audio></td>
-        </tr>
-      {% endif %}
-    {% endfor %}
-  </tbody>
-</table>
- </div>
+    </div>
+
+    <div class="mt-3">
+        <a class="btn btn--ghost" href="{{ path('app_playlist_index') }}">{{ ui.icon('arrow-left', 16) }} Mes playlists</a>
+    </div>
 {% endblock %}
-
-
-
-
-{# 
-{% extends 'base.html.twig' %}
-
-{% block title %}Playlist{% endblock %}
-
-{% block body %}
-    <h1>Ma Playlist</h1>
-
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ playlist.id }}</td>
-            </tr>
-            <tr>
-                <th>NomPlaylist</th>
-                <td>{{ playlist.nomPlaylist }}</td>
-            </tr>
-            <tr>
-                <th>NbMorceaux</th>
-                <td>{{ playlist.nbMorceaux }}</td>
-            </tr>
-        </tbody>
-    </table>
-
-{% endblock %}
-#}

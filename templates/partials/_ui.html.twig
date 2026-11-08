@@ -1,0 +1,90 @@
+{# ── Macros d'interface réutilisables ───────────────────────────────────────── #}
+
+{% macro icon(name = 'note', size = 18) %}
+    <svg width="{{ size|default(18) }}" height="{{ size|default(18) }}" aria-hidden="true" focusable="false"><use href="#i-{{ name }}"/></svg>
+{% endmacro %}
+
+{% macro cover(seed = 0, imageUrl = null, extra = '') %}
+    <div class="cover cover--{{ (seed|default(0)) % 8 }}{{ extra ? ' ' ~ extra }}">
+        {% if imageUrl %}
+            <img src="{{ imageUrl }}" alt="" loading="lazy">
+        {% else %}
+            {{ _self.icon('note', 26) }}
+        {% endif %}
+    </div>
+{% endmacro %}
+
+{% macro trackCard(morceau) %}
+    {% set seed = morceau.id|default(0) %}
+    {% set image = morceau.imageName ? vich_uploader_asset(morceau, 'imageFile') : null %}
+    <article class="track-card" data-track-id="{{ morceau.id }}">
+        <div class="track-card__media">
+            {{ _self.cover(seed, image) }}
+            {% if morceau.musicName %}
+                <button class="track-card__play" type="button" data-play
+                        data-track-id="{{ morceau.id }}"
+                        data-title="{{ morceau.nomMorceaux }}"
+                        data-artist="{{ morceau.artiste }}"
+                        data-src="{{ vich_uploader_asset(morceau, 'musicFile') }}"
+                        data-cover="{{ seed % 8 }}"
+                        data-url="{{ path('morceaux.show', {id: morceau.id}) }}"
+                        aria-label="Lire {{ morceau.nomMorceaux }}">
+                    {{ _self.icon('play', 18) }}
+                </button>
+            {% endif %}
+        </div>
+        <div class="track-card__body">
+            <div class="track-card__title">
+                <a href="{{ path('morceaux.show', {id: morceau.id}) }}">{{ morceau.nomMorceaux }}</a>
+            </div>
+            <div class="track-card__meta">{{ morceau.artiste }}</div>
+            <div class="track-card__tags">
+                {% if morceau.genreid %}<span class="tag">{{ morceau.genreid.nomGenre }}</span>{% endif %}
+                {% if morceau.dateSortie %}<span class="tag">{{ morceau.dateSortie|date('Y') }}</span>{% endif %}
+            </div>
+        </div>
+    </article>
+{% endmacro %}
+
+{% macro trackRow(morceau) %}
+    {% set seed = morceau.id|default(0) %}
+    {% set image = morceau.imageName ? vich_uploader_asset(morceau, 'imageFile') : null %}
+    <div class="track-row" data-track-id="{{ morceau.id }}">
+        {% if morceau.musicName %}
+            <button class="track-row__index" type="button" data-play
+                    data-track-id="{{ morceau.id }}"
+                    data-title="{{ morceau.nomMorceaux }}"
+                    data-artist="{{ morceau.artiste }}"
+                    data-src="{{ vich_uploader_asset(morceau, 'musicFile') }}"
+                    data-cover="{{ seed % 8 }}"
+                    data-url="{{ path('morceaux.show', {id: morceau.id}) }}"
+                    aria-label="Lire {{ morceau.nomMorceaux }}">
+                {{ _self.icon('play', 14) }}
+            </button>
+        {% else %}
+            <span class="track-row__index" aria-hidden="true">{{ _self.icon('note', 14) }}</span>
+        {% endif %}
+
+        {{ _self.cover(seed, image, 'cover--sm') }}
+
+        <div>
+            <div class="track-row__title"><a href="{{ path('morceaux.show', {id: morceau.id}) }}">{{ morceau.nomMorceaux }}</a></div>
+            <div class="track-row__meta">{{ morceau.artiste }}</div>
+        </div>
+
+        <span class="tag track-row__genre">{{ morceau.genreid ? morceau.genreid.nomGenre : 'Sans genre' }}</span>
+
+        <div class="track-row__actions">
+            {% if morceau.isEditableBy(app.user) %}
+                <a class="btn btn--icon btn--sm" href="{{ path('morceaux.edit', {id: morceau.id}) }}"
+                   title="Modifier" aria-label="Modifier {{ morceau.nomMorceaux }}">
+                    {{ _self.icon('edit', 15) }}
+                </a>
+            {% endif %}
+            <a class="btn btn--icon btn--sm" href="{{ path('morceaux.show', {id: morceau.id}) }}"
+               title="Voir la fiche" aria-label="Voir {{ morceau.nomMorceaux }}">
+                {{ _self.icon('arrow-right', 15) }}
+            </a>
+        </div>
+    </div>
+{% endmacro %}

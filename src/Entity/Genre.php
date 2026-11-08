@@ -1,13 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\GenreRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints as Assert;
 
+/**
+ * Genre musical (Rock, Jazz, Électro…).
+ */
 #[ORM\Entity(repositoryClass: GenreRepository::class)]
+#[UniqueEntity(fields: ['nomGenre'], message: 'Ce genre existe déjà.')]
 class Genre
 {
     #[ORM\Id]
@@ -16,8 +24,16 @@ class Genre
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le nom du genre est obligatoire.')]
+    #[Assert\Length(
+        min: 2,
+        max: 60,
+        minMessage: 'Le nom du genre doit contenir au moins {{ limit }} caractères.',
+        maxMessage: 'Le nom du genre ne peut pas dépasser {{ limit }} caractères.'
+    )]
     private ?string $nomGenre = null;
 
+    /** @var Collection<int, Morceaux> */
     #[ORM\OneToMany(mappedBy: 'genreid', targetEntity: Morceaux::class)]
     private Collection $morceauxes;
 
@@ -26,9 +42,9 @@ class Genre
         $this->morceauxes = new ArrayCollection();
     }
 
-    public function __toString()
+    public function __toString(): string
     {
-        return $this->nomGenre;
+        return (string) $this->nomGenre;
     }
 
     public function getId(): ?int
@@ -43,7 +59,7 @@ class Genre
 
     public function setNomGenre(string $nomGenre): self
     {
-        $this->nomGenre = $nomGenre;
+        $this->nomGenre = trim($nomGenre);
 
         return $this;
     }
@@ -68,11 +84,8 @@ class Genre
 
     public function removeMorceaux(Morceaux $morceaux): self
     {
-        if ($this->morceauxes->removeElement($morceaux)) {
-            // set the owning side to null (unless already changed)
-            if ($morceaux->getGenreid() === $this) {
-                $morceaux->setGenreid(null);
-            }
+        if ($this->morceauxes->removeElement($morceaux) && $morceaux->getGenreid() === $this) {
+            $morceaux->setGenreid(null);
         }
 
         return $this;

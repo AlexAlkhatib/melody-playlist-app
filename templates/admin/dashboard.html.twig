@@ -1,0 +1,53 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}Tableau de bord{% endblock %}
+
+{% block page_content %}
+    <div class="row g-3">
+        <div class="col-sm-6 col-xl">
+            <div class="card">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase">Morceaux</div>
+                    <div class="display-6">{{ nbMorceaux }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl">
+            <div class="card">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase">Playlists</div>
+                    <div class="display-6">{{ nbPlaylists }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl">
+            <div class="card">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase">Genres</div>
+                    <div class="display-6">{{ nbGenres }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl">
+            <div class="card">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase">Utilisateurs</div>
+                    <div class="display-6">{{ nbUtilisateurs }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl">
+            <div class="card">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase">Messages</div>
+                    <div class="display-6">{{ nbMessages }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <p class="mt-4 text-muted mb-0">
+        Utilisez le menu de gauche pour gérer le catalogue, les playlists, les comptes
+        et les messages reçus depuis le formulaire de contact.
+    </p>
+{% endblock %}

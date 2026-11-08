@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+{% import 'partials/_ui.html.twig' as ui %}
+
+{% block title %}Erreur — {{ app_name }}{% endblock %}
+
+{% block body %}
+    <div class="empty" style="margin-top:40px">
+        {{ ui.icon('note', 40) }}
+        <strong style="font-size:22px">La musique s'est arrêtée un instant</strong>
+        <p>Une erreur est survenue. Réessayez, ou revenez à l'accueil.</p>
+        <a class="btn btn--primary" href="{{ path('home.index') }}">Retour à l'accueil</a>
+    </div>
+{% endblock %}
